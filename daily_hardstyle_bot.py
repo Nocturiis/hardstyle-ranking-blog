@@ -113,27 +113,27 @@ test_mistral_auth()
 def generate_daily_hardstyle_article():
     # Mots-clés pour des articles Hardstyle variés
     hardstyle_topics = [
-        "l'évolution du Hardstyle", "les sous-genres du Hardstyle (Raw, Euphoric, Xtra Raw)",
-        "l'impact du Hardstyle sur la scène électronique", "les festivals Hardstyle incontournables",
-        "les techniques de production Hardstyle", "l'histoire d'un label Hardstyle emblématique",
-        "la culture des raves Hardstyle", "les DJ sets Hardstyle légendaires",
-        "le futur du Hardstyle", "l'innovation sonore dans le Hardstyle",
-        "l'énergie et l'émotion du Hardstyle", "les mélodies iconiques du Hardstyle"
+        "the evolution of Hardstyle", "Hardstyle subgenres (Raw, Euphoric, Xtra Raw)",
+        "Hardstyle's impact on the electronic music scene", "essential Hardstyle festivals",
+        "Hardstyle production techniques", "the history of an iconic Hardstyle label",
+        "the culture of Hardstyle raves", "legendary Hardstyle DJ sets",
+        "the future of Hardstyle", "sound innovation in Hardstyle",
+        "the energy and emotion of Hardstyle", "iconic Hardstyle melodies"
     ]
     chosen_topic = random.choice(hardstyle_topics)
 
-    # Prompt pour Mistral AI
+    # CHANGED: Prompt en anglais, suppression de la signature, ajout de l'instruction pour la note
     article_prompt = (
-        f"Rédige un article de blog professionnel et détaillé d'au moins 1200 mots en français sur le thème de {chosen_topic} dans le Hardstyle. "
-        "L'article doit captiver les fans de musique électronique et de Hardstyle. "
-        "Intègre naturellement des mentions de l'artiste **XCEED** et de la **playlist Spotify 'SUMMER HARDSTYLE 2025🔥'**. "
-        "Tu peux placer des extraits d'embeds Spotify de XCEED ou de la playlist à des endroits pertinents. "
-        "Le titre de l'article doit être inclus au début du contenu (premier niveau de titre H1, ex: # Titre de l'Article). "
-        "Le titre doit être percutant et accrocheur pour le public Hardstyle. "
-        "Ne commence pas l'article par 'Titre : ' ou 'Auteur : ' ou 'Date de publication : '. "
-        "L'article doit se terminer par la signature 'Par Nathan Remacle.'. "
-        "Optimise le contenu pour le SEO en incluant des mots-clés pertinents (Hardstyle, musique électronique, DJ, festivals, XCEED, Spotify). "
-        "Adopte un ton passionné et engageant, évitant les formulations trop 'IA'."
+        f"Write a professional, detailed, and captivating blog post of at least 1200 words in English on {chosen_topic} within the Hardstyle genre. "
+        "The article must resonate with electronic music and Hardstyle fans. "
+        "Naturally integrate mentions of the artist **XCEED** and the **Spotify playlist 'SUMMER HARDSTYLE 2025🔥'**. "
+        "Do NOT mention or include any notes about Spotify links being examples or placeholder. "
+        "The title of the article must be included at the beginning of the content (H1 markdown format, e.g., # Your Catchy Hardstyle Title). "
+        "The title should be impactful, SEO-friendly, and engaging for the Hardstyle audience. "
+        "Do not start the article with 'Title: ', 'Author: ', or 'Publication Date: '. "
+        "Do NOT include any closing signature at the end of the article. "
+        "Optimize the content for SEO by naturally including relevant keywords (Hardstyle, electronic music, DJ, festivals, XCEED, Spotify). "
+        "Adopt a passionate and engaging tone, avoiding overly 'AI-like' formulations."
     )
     
     headers = {
@@ -152,7 +152,7 @@ def generate_daily_hardstyle_article():
         "max_tokens": 2000 # Ajusté pour correspondre à 1200 mots
     }
 
-    print(f"\n🚀 Tentative de génération d'article Hardstyle quotidien sur '{chosen_topic}' avec le modèle '{MISTRAL_MODEL_NAME}'...")
+    print(f"\n🚀 Attempting to generate daily Hardstyle article on '{chosen_topic}' with model '{MISTRAL_MODEL_NAME}'...")
     try:
         response = requests.post(
             MISTRAL_API_BASE_URL,
@@ -168,8 +168,16 @@ def generate_daily_hardstyle_article():
         
         if 'choices' in data and data['choices'] and 'message' in data['choices'][0] and 'content' in data['choices'][0]['message']:
             article_content = data['choices'][0]['message']['content'].strip()
-            print("DEBUG: Réponse traitée comme Chat Completions API de Mistral AI.")
+            print("DEBUG: Response processed as Chat Completions API from Mistral AI.")
             
+            # Post-traitement pour retirer la signature et la note si l'IA les ajoute par erreur
+            article_content = article_content.replace("Par Nathan Remacle.", "").strip()
+            article_content = article_content.replace("By Nathan Remacle.", "").strip()
+            # Regex pour enlever la note sur les embeds, plus robuste
+            article_content = re.sub(r'\*Note\s*:\s*(.*?)\s*\*', '', article_content, flags=re.IGNORECASE | re.DOTALL).strip()
+            article_content = re.sub(r'Note\s*:\s*(.*?)\s*', '', article_content, flags=re.IGNORECASE | re.DOTALL).strip()
+
+
             # Insérer les embeds Spotify. L'IA devrait déjà les mentionner,
             # mais nous les ajoutons ici pour garantir leur présence et leur bon format.
             # On insère XCEED après le premier paragraphe ou introduction du titre.
@@ -182,30 +190,27 @@ def generate_daily_hardstyle_article():
 
             # Insérer XCEED si le contenu est assez long
             if len(lines) > 5: # Si l'article a au moins quelques paragraphes
-                lines.insert(insert_point_xceed, "\n" + XCEED_SPOTIFY_EMBED + "\n")
-                article_content = "\n".join(lines)
-                print("DEBUG: Embed Spotify de XCEED inséré.")
+                # Vérifier si l'embed XCEED n'est pas déjà présent pour éviter les doublons
+                if XCEED_SPOTIFY_EMBED not in article_content:
+                    lines.insert(insert_point_xceed, "\n" + XCEED_SPOTIFY_EMBED + "\n")
+                    article_content = "\n".join(lines)
+                    print("DEBUG: Spotify embed for XCEED inserted.")
 
-            # Insérer la playlist avant la signature finale
-            # On doit trouver la signature et insérer avant
-            if "Par Nathan Remacle." in article_content:
-                article_content = article_content.replace("Par Nathan Remacle.", 
-                                                          "\n**Écoutez le meilleur du Hardstyle :**\n" + PLAYLIST_SPOTIFY_EMBED + "\n\nPar Nathan Remacle.")
-                print("DEBUG: Embed Spotify de la playlist inséré.")
-            else:
-                # Fallback si la signature est manquante (rare)
-                article_content += "\n**Écoutez le meilleur du Hardstyle :**\n" + PLAYLIST_SPOTIFY_EMBED
-                print("DEBUG: Embed Spotify de la playlist inséré (fallback).")
+            # Insérer la playlist à la fin du contenu
+            # Vérifier si l'embed de la playlist n'est pas déjà présent
+            if PLAYLIST_SPOTIFY_EMBED not in article_content:
+                article_content += "\n\n**Dive into the best of Hardstyle:**\n" + PLAYLIST_SPOTIFY_EMBED + "\n"
+                print("DEBUG: Spotify playlist embed inserted.")
 
             return article_content
         else:
-            raise ValueError(f"La réponse de Mistral AI ne contient pas le format de chat completions attendu. Réponse complète: {data}")
+            raise ValueError(f"Mistral AI response does not contain the expected chat completions format. Full response: {data}")
         
     except requests.exceptions.RequestException as e:
-        print(f"❌ ERREUR HTTP lors de la génération de l'article avec Mistral AI : {e}")
+        print(f"❌ HTTP ERROR generating article with Mistral AI : {e}")
         sys.exit(1)
     except ValueError as e:
-        print(f"❌ ERREUR de données dans la réponse Mistral AI : {e}")
+        print(f"❌ DATA ERROR in Mistral AI response : {e}")
         sys.exit(1)
 
 # --- Publication de l'article sur Hashnode ---
@@ -218,13 +223,17 @@ def publish_article(content):
         extracted_title = first_line_match[2:].strip()
         content = content[len(first_line_match):].strip()
     else:
-        extracted_title = "Article Hardstyle du " + datetime.now().strftime("%d %B %Y - %H:%M")
+        # Fallback pour le titre, également en anglais
+        extracted_title = "Hardstyle Article from " + datetime.now().strftime("%d %B %Y - %H:%M")
 
-    # Assurez-vous que la signature est présente (si elle n'a pas été incluse par l'IA ou manipulée)
-    if "Par Nathan Remacle." not in content:
-        content += "\n\nPar Nathan Remacle."
+    # Suppression finale de toute signature ou note résiduelle
+    content = content.replace("Par Nathan Remacle.", "").strip()
+    content = content.replace("By Nathan Remacle.", "").strip()
+    content = re.sub(r'\*Note\s*:\s*(.*?)\s*\*', '', content, flags=re.IGNORECASE | re.DOTALL).strip()
+    content = re.sub(r'Note\s*:\s*(.*?)\s*', '', content, flags=re.IGNORECASE | re.DOTALL).strip()
 
-    selected_cover_url = get_daily_cover_image_url() # Utilisation d'une image aléatoire du dossier covers/
+
+    selected_cover_url = get_daily_cover_image_url() # Utilisation de l'image spécifique daily.png
 
     mutation = """
     mutation PublishPost($input: PublishPostInput!) {
@@ -247,7 +256,7 @@ def publish_article(content):
             "tags": [
                 {"name": "Hardstyle", "slug": "hardstyle"},
                 {"name": "Music", "slug": "music"},
-                {"name": "Electronic Music", "slug": "electronic-music"} # Correction pour un slug plus standard
+                {"name": "Electronic Music", "slug": "electronic-music"}
             ],
         }
     }
@@ -257,9 +266,9 @@ def publish_article(content):
             "coverImageURL": selected_cover_url,
             "isCoverAttributionHidden": True
         }
-        print(f"DEBUG: Image de couverture Hashnode ajoutée aux variables: {selected_cover_url}")
+        print(f"DEBUG: Hashnode cover image added to variables: {selected_cover_url}")
     else:
-        print("DEBUG: Pas d'image de couverture ajoutée (aucune URL configurée ou liste vide).")
+        print("DEBUG: No cover image added (no URL configured or list empty).")
 
 
     headers = {
@@ -267,9 +276,9 @@ def publish_article(content):
         "Authorization": f"Bearer {HASHNODE_API_KEY}"
     }
 
-    print(f"\n✍️ Tentative de publication de l'article '{extracted_title}' sur Hashnode...")
-    print(f"DEBUG: Payload JSON envoyé à Hashnode (sans le contenu détaillé): {json.dumps(variables, indent=2)}")
-    print(f"DEBUG: Début du contenu Markdown envoyé: {content[:200]}...")
+    print(f"\n✍️ Attempting to publish article '{extracted_title}' to Hashnode...")
+    print(f"DEBUG: JSON Payload sent to Hashnode (without full content): {json.dumps(variables, indent=2)}")
+    print(f"DEBUG: Start of Markdown content sent: {content[:200]}...")
 
     try:
         resp = requests.post(HASHNODE_API_URL, json={"query": mutation, "variables": variables}, headers=headers)
@@ -280,7 +289,7 @@ def publish_article(content):
         response_data = resp.json()
 
         if 'errors' in response_data and response_data['errors']:
-            print(f"❌ ERREUR GraphQL de Hashnode lors de la publication de l'article : {response_data['errors']}")
+            print(f"❌ GraphQL ERROR from Hashnode when publishing article : {response_data['errors']}")
             sys.exit(1)
 
         post_url = None
@@ -289,25 +298,28 @@ def publish_article(content):
            'post' in response_data['data']['publishPost'] and \
            'url' in response_data['data']['publishPost']['post']:
             post_url = response_data['data']['publishPost']['post']['url']
-            print(f"✅ Article publié avec succès : {extracted_title} à l'URL : {post_url}")
+            print(f"✅ Article published successfully : {extracted_title} at URL : {post_url}")
         else:
-            print(f"✅ Article publié avec succès (URL non récupérée) : {extracted_title}")
+            print(f"✅ Article published successfully (URL not retrieved) : {extracted_title}")
 
     except requests.exceptions.RequestException as e:
-        print(f"❌ ERREUR HTTP lors de la publication de l'article sur Hashnode : {e}")
-        print(f"Réponse Hashnode en cas d'erreur : {resp.text if 'resp' in locals() else 'Pas de réponse.'}")
+        print(f"❌ HTTP ERROR publishing article to Hashnode : {e}")
+        print(f"Hashnode response on error : {resp.text if 'resp' in locals() else 'No response.'}")
         sys.exit(1)
     except Exception as e:
-        print(f"❌ Une erreur inattendue est survenue lors de la publication : {e}")
+        print(f"❌ An unexpected error occurred during publication : {e}")
         sys.exit(1)
 
-# --- Exécution principale ---
+# --- Main Execution ---
 if __name__ == "__main__":
-    print("Démarrage du bot Hardstyle quotidien.")
+    # Add re module import
+    import re
+    print("Starting daily Hardstyle bot.")
     try:
         article = generate_daily_hardstyle_article()
         publish_article(article)
-        print("\n🎉 Bot Hardstyle quotidien terminé avec succès !")
+        print("\n🎉 Daily Hardstyle bot successfully completed!")
     except Exception as e:
-        print(f"\nFATAL ERROR: Une erreur critique est survenue : {e}")
+        print(f"\nFATAL ERROR: A critical error occurred : {e}")
         sys.exit(1)
+
