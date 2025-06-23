@@ -1,0 +1,29 @@
+name: Daily Hardstyle Blog Post
+
+on:
+  schedule:
+    # Exécute tous les jours à 03h00 UTC
+    - cron: '0 3 * * *' 
+  workflow_dispatch: # Permet de déclencher manuellement le workflow
+
+jobs:
+  publish-hardstyle-daily:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Run Daily Hardstyle Bot
+      env:
+        MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+        HASHNODE_API_KEY: ${{ secrets.HASHNODE_API_KEY }}
+      run: python daily_hardstyle_bot.py
