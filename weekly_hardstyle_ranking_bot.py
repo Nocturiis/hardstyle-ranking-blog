@@ -4,6 +4,7 @@ import requests
 from datetime import datetime
 import json
 import random
+import re # Assurez-vous que cette ligne est bien présente en haut du fichier
 
 # --- Récupération et vérification des clés d'API ---
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
@@ -267,15 +268,111 @@ def generate_weekly_ranking_article():
         print(f"❌ DATA ERROR in Mistral AI response : {e}")
         sys.exit(1)
 
-# ... (le reste du fichier reste inchangé à partir de la fonction publish_article)
+# --- Publication de l'article sur Hashnode ---
+def publish_article(content): # <--- C'est ici que la fonction doit être définie
+    publication_id = HARDSTYLE_PUBLICATION_ID
+    
+    first_line_match = content.split('\n')[0].strip()
+    extracted_title = ""
+    if first_line_match.startswith('# '):
+        extracted_title = first_line_match[2:].strip()
+        content = content[len(first_line_match):].strip()
+    else:
+        # Fallback for title, also in English
+        extracted_title = "Hardstyle Ranking from " + datetime.now().strftime("%d %B %Y - %H:%M")
+
+    # Final removal of any residual signature or notes
+    content = content.replace("Par Nathan Remacle.", "").strip()
+    content = content.replace("By Nathan Remacle.", "").strip()
+    content = re.sub(r'\*Note\s*:\s*(.*?)\s*\*', '', content, flags=re.IGNORECASE | re.DOTALL).strip()
+    content = re.sub(r'Note\s*:\s*(.*?)\s*', '', content, flags=re.IGNORECASE | re.DOTALL).strip()
+
+    selected_cover_url = get_weekly_cover_image_url() # Using the specific weekly.png image
+
+    mutation = """
+    mutation PublishPost($input: PublishPostInput!) {
+      publishPost(input: $input) {
+        post {
+          id
+          title
+          slug
+          url
+        }
+      }
+    }
+    """
+    
+    variables = {
+        "input": {
+            "title": extracted_title,
+            "contentMarkdown": content,
+            "publicationId": publication_id,
+            "tags": [
+                {"name": "Hardstyle", "slug": "hardstyle"},
+                {"name": "Ranking", "slug": "ranking"},
+                {"name": "Music", "slug": "music"},
+                {"name": "XCEED", "slug": "xceed"},
+                {"name": "Spotify", "slug": "spotify"}
+            ],
+        }
+    }
+    
+    if selected_cover_url:
+        variables["input"]["coverImageOptions"] = {
+            "coverImageURL": selected_cover_url,
+            "isCoverAttributionHidden": True
+        }
+        print(f"DEBUG: Hashnode cover image added to variables: {selected_cover_url}")
+    else:
+        print("DEBUG: No cover image added (no URL configured or list empty).")
+
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {HASHNODE_API_KEY}"
+    }
+
+    print(f"\n✍️ Attempting to publish article '{extracted_title}' to Hashnode...")
+    print(f"DEBUG: JSON Payload sent to Hashnode (without full content): {json.dumps(variables, indent=2)}")
+    print(f"DEBUG: Start of Markdown content sent: {content[:200]}...")
+
+    try:
+        resp = requests.post(HASHNODE_API_URL, json={"query": mutation, "variables": variables}, headers=headers)
+        
+        print("Publish status:", resp.status_code)
+        print("Publish response:", resp.text)
+        
+        response_data = resp.json()
+
+        if 'errors' in response_data and response_data['errors']:
+            print(f"❌ GraphQL ERROR from Hashnode when publishing article : {response_data['errors']}")
+            sys.exit(1)
+
+        post_url = None
+        if 'data' in response_data and \
+           'publishPost' in response_data['data'] and \
+           'post' in response_data['data']['publishPost'] and \
+           'url' in response_data['data']['publishPost']['post']:
+            post_url = response_data['data']['publishPost']['post']['url']
+            print(f"✅ Article published successfully : {extracted_title} at URL : {post_url}")
+        else:
+            print(f"✅ Article published successfully (URL not retrieved) : {extracted_title}")
+
+    except requests.exceptions.RequestException as e:
+        print(f"❌ HTTP ERROR publishing article to Hashnode : {e}")
+        print(f"Hashnode response on error : {resp.text if 'resp' in locals() else 'No response.'}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"❌ An unexpected error occurred during publication : {e}")
+        sys.exit(1)
 
 # --- Main Execution ---
 if __name__ == "__main__":
-    import re # Ensure re is imported here
+    # import re # This import is already at the top, so no need to repeat it here.
     print("Starting weekly Hardstyle ranking bot.")
     try:
         article = generate_weekly_ranking_article()
-        publish_article(article)
+        publish_article(article) # <--- Maintenant, publish_article est définie
         print("\n🎉 Weekly Hardstyle ranking bot successfully completed!")
     except Exception as e:
         print(f"\nFATAL ERROR: A critical error occurred : {e}")
