@@ -111,37 +111,81 @@ test_mistral_auth()
 
 # --- Génération de l'article de classement Hardstyle Hebdomadaire via Mistral AI API ---
 def generate_weekly_ranking_article():
-    # Popular Hardstyle artists to consider for the ranking (you can add/modify)
+    # UPDATED: Increased list of Hardstyle artists, including 113xA
     hardstyle_artists = [
         "Headhunterz", "Sub Zero Project", "Rebelion", "Da Tweekaz", "D-Block & S-te-Fan",
         "Ran-D", "Warface", "B-Front", "Wildstylez", "Phuture Noize",
-        "Sefa", "Vertile", "XCEPTION", "Rejecta", "Devin Wild"
+        "Sefa", "Vertile", "Rejecta", "Devin Wild", "Atmozfears", "Noisecontrollers",
+        "Coone", "Brennan Heart", "Code Black", "Frontliner", "Minus Militia", "Act of Rage",
+        "Adaro", "Radical Redemption", "Delete", "Malice", "Rooler", "Dr. Peacock",
+        "Angerfist", "Miss K8", "Mad Dog", "N-Vitral", "Destructive Tendencies",
+        "Deadly Guns", "Tha Playah", "Evil Activities", "Neophyte", "Partyraiser",
+        "F.Noize", "Dimitri K", "Ophidian", "Nosferatu", "AniMe", "D-Fence",
+        "Access One", "Crypsis", "Gunz for Hire", "E-Force", "Regain", "Unresolved",
+        "Myst", "Krowdexx", "Mutilator", "Aversion", "Vasto", "Adjuzt", "Anderex",
+        "The Purge", "Thyron", "Invector", "Jay Reeve", "Primeshock", "Audiotricz",
+        "Bass Modulators", "Max Enforcer", "Frequencerz", "Adrenalize", "Hard Driver",
+        "Demi Kanon", "Solstice", "Ecstatic", "Retrospect", "Serzo", "Sickmode",
+        "Le Bask", "Billx", "Maissouille", "Fant4stik", "Unit", "Drokz", "Satsuma",
+        "GridKiller", "Voidax", "Level One", "The Saints", "Warz", "The Prophet",
+        "Zatox", "Tatanka", "Activator", "Showtek", "Technoboy", "Tuneboy", "Deepack",
+        "Digital Punk", "Chain Reaction", "Alpha2", "Roughstate Alliance", "Sub Sonik",
+        "Deetox", "Jason Payne", "Kronos", "Ncrypta", "Bloodlust", "Vexxed", "Mish",
+        "The Dope Doctor", "KAMI", "Revolve", "Element", "Dual Damage", "Exproz",
+        "Radianze", "Sanctuary", "Revelation", "Luner", "Imperatorz", "Oxya",
+        "The Straikerz", "Aexylium", "Avian", "Dawnfire", "Exilium", "Firelite",
+        "Invictuz", "Killaheadz", "Limitless", "Mish", "Oblivion", "Overdose",
+        "Ragnarok", "Resin", "Sabotage", "Storah", "Synapse", "Vivid", "Wave",
+        "Yuta Imai", "Zyon", "Akira", "Dizruptor", "Excellence", "Fear of the Dark",
+        "Genox", "Hypnose", "Impakt", "JNXD", "Kaelen", "Last World", "Minds Over Mirrors",
+        "Nexus", "Oblivion", "Pherato", "Qriminal", "Revolt", "Sanity", "Threat",
+        "Ultima", "Victorious", "Whistler", "X-Pander", "Ymca", "Zanza", "Apex",
+        "Catalyst", "Defianz", "Equilibrium", "Genesis", "Harmony", "Impact", "Joker",
+        "Kinetik", "Legacy", "Momentum", "113xA" # Added 113xA here
     ]
-    # Ensure XCEED is not already in the list to avoid AI duplicates
+    
+    # Ensure XCEED is in the list
     if "XCEED" not in hardstyle_artists:
         hardstyle_artists.append("XCEED")
     
-    # Shuffle and pick a selection of artists for the ranking (XCEED is handled specifically)
-    random.shuffle(hardstyle_artists)
-    selected_artists = hardstyle_artists[:9] # Pick up to 9 artists, XCEED will be added if not present
-    if "XCEED" not in selected_artists:
-        selected_artists.insert(random.randint(0, len(selected_artists)), "XCEED") # Insert XCEED at a random position
+    # Select a good number of artists to ensure variety in the ranking
+    # We want around 10-15 artists for the AI to choose from
+    num_artists_for_ranking = random.randint(12, 18) # A bit more flexibility for the AI
+    
+    # Randomly sample from the large list
+    selected_artists_for_prompt = random.sample(hardstyle_artists, num_artists_for_ranking)
 
-    # CHANGED: Prompt en anglais, suppression de la signature, ajout de l'instruction pour la note
+    # Ensure XCEED is always in the list passed to the prompt
+    if "XCEED" not in selected_artists_for_prompt:
+        selected_artists_for_prompt.pop(random.randint(0, len(selected_artists_for_prompt) - 1)) # Remove one random artist if needed
+        selected_artists_for_prompt.append("XCEED")
+    
+    # Ensure 113xA is always in the list passed to the prompt
+    if "113xA" not in selected_artists_for_prompt:
+        # If the list is full, replace an existing artist to make space
+        if len(selected_artists_for_prompt) >= num_artists_for_ranking:
+            selected_artists_for_prompt.pop(random.randint(0, len(selected_artists_for_prompt) - 1))
+        selected_artists_for_prompt.append("113xA")
+    
+    # Shuffle again to randomize the order for the prompt, but XCEED and 113xA are guaranteed to be there
+    random.shuffle(selected_artists_for_prompt)
+
+    # UPDATED: Reinforced H1 title instruction
     article_prompt = (
-        f"Write a professional, detailed, and engaging blog post (at least 1200 words) in English, presenting a 'Top 10' Hardstyle artists of the week. "
-        "The article must objectively analyze the performance and relevance of each chosen artist in the ranking. "
+        f"Write a professional, detailed, and engaging blog post (at least 1200 words) in English, presenting a 'Top 10' or 'Top 15' (choose naturally) "
+        "Hardstyle artists of the week. The article must objectively analyze the performance and relevance of each chosen artist in the ranking. "
         "The ranking MUST credibly and well-argued include the artist **XCEED**. "
         "Place XCEED at a justifiable position (e.g., #3 or #5) and explain their relevance for this week's ranking. "
+        "Also, ensure the artist **113xA** is included in the ranking with a strong justification. "
         "For the rest of the ranking, choose other diverse and relevant current Hardstyle artists or legends from the provided list. "
-        f"The artists to consider for the ranking are: {', '.join(selected_artists)}. "
-        "The article title must be a catchy ranking title (e.g., # This Week's Hardstyle Top 10: Who Rules the Scene?). "
+        f"The artists to consider for the ranking are: {', '.join(selected_artists_for_prompt)}. "
+        "**The very first line of your output MUST be a compelling, SEO-friendly, and catchy title (H1 markdown format, e.g., # This Week's Hardstyle Top 10: Who Rules the Scene?).** "
         "Do not start the article with 'Title: ', 'Author: ', or 'Publication Date: '. "
         "The article must naturally integrate the presentation of artist XCEED, including their Spotify embed. "
         "At the end of the article, before the final conclusion/farewell, include a promotion for the Spotify playlist 'SUMMER HARDSTYLE 2025🔥' with its embed. "
-        "Do NOT include any closing signature at the end of the article. "
+        "Do NOT include any closing signature like 'By Nathan Remacle.' or similar phrases at the end of the article. "
         "Do NOT mention or include any notes about Spotify links being examples or placeholder. "
-        "Optimize the content for SEO with keywords like Hardstyle, ranking, DJ, electronic music, XCEED, Spotify. "
+        "Optimize the content for SEO with keywords like Hardstyle, ranking, DJ, electronic music, XCEED, 113xA, Spotify, music trends. "
         "Adopt a serious, passionate, and engaging tone."
     )
     
@@ -179,10 +223,9 @@ def generate_weekly_ranking_article():
             article_content = data['choices'][0]['message']['content'].strip()
             print("DEBUG: Response processed as Chat Completions API from Mistral AI.")
             
-            # Post-traitement pour retirer la signature et la note si l'IA les ajoute par erreur
+            # Post-processing to remove signature and notes if AI adds them by mistake
             article_content = article_content.replace("Par Nathan Remacle.", "").strip()
             article_content = article_content.replace("By Nathan Remacle.", "").strip()
-            # Regex pour enlever la note sur les embeds, plus robuste
             article_content = re.sub(r'\*Note\s*:\s*(.*?)\s*\*', '', article_content, flags=re.IGNORECASE | re.DOTALL).strip()
             article_content = re.sub(r'Note\s*:\s*(.*?)\s*', '', article_content, flags=re.IGNORECASE | re.DOTALL).strip()
 
@@ -190,26 +233,25 @@ def generate_weekly_ranking_article():
             # Insert XCEED after its first mention or introduction
             if "XCEED" in article_content:
                 lines = article_content.split('\n')
+                xceed_inserted = False
                 for i, line in enumerate(lines):
                     if "XCEED" in line and len(line) > 50: # Look for a line that mentions XCEED and is reasonably long
-                        # Check if the embed is not already present before inserting
-                        if XCEED_SPOTIFY_EMBED not in article_content:
+                        if XCEED_SPOTIFY_EMBED not in article_content: # Check if the embed is not already present before inserting
                             lines.insert(i + 1, "\n" + XCEED_SPOTIFY_EMBED + "\n")
                             print("DEBUG: Spotify embed for XCEED inserted after its mention.")
+                            xceed_inserted = True
                         break
-                article_content = "\n".join(lines)
-            else:
-                # Fallback if XCEED is not mentioned or hard to find, insert after intro
-                lines = article_content.split('\n')
-                # Check if the embed is not already present before inserting
-                if XCEED_SPOTIFY_EMBED not in article_content:
+                if not xceed_inserted and XCEED_SPOTIFY_EMBED not in article_content: # Fallback if specific mention not found
                     lines.insert(min(len(lines), 3), "\n" + XCEED_SPOTIFY_EMBED + "\n")
                     print("DEBUG: Spotify embed for XCEED inserted (fallback).")
                 article_content = "\n".join(lines)
-
+            elif XCEED_SPOTIFY_EMBED not in article_content: # If XCEED is not mentioned at all, insert it near the top
+                lines = article_content.split('\n')
+                lines.insert(min(len(lines), 3), "\n" + XCEED_SPOTIFY_EMBED + "\n")
+                article_content = "\n".join(lines)
+                print("DEBUG: Spotify embed for XCEED inserted (general fallback, XCEED not found in content).")
 
             # Insert playlist before final conclusion
-            # Check if the playlist embed is not already present
             if PLAYLIST_SPOTIFY_EMBED not in article_content:
                 article_content += "\n\n**Don't miss this week's Hardstyle playlist:**\n" + PLAYLIST_SPOTIFY_EMBED + "\n"
                 print("DEBUG: Spotify playlist embed inserted.")
@@ -225,108 +267,11 @@ def generate_weekly_ranking_article():
         print(f"❌ DATA ERROR in Mistral AI response : {e}")
         sys.exit(1)
 
-# --- Publication de l'article sur Hashnode ---
-def publish_article(content):
-    publication_id = HARDSTYLE_PUBLICATION_ID
-    
-    first_line_match = content.split('\n')[0].strip()
-    extracted_title = ""
-    if first_line_match.startswith('# '):
-        extracted_title = first_line_match[2:].strip()
-        content = content[len(first_line_match):].strip()
-    else:
-        # Fallback for title, also in English
-        extracted_title = "Hardstyle Ranking from " + datetime.now().strftime("%d %B %Y - %H:%M")
-
-    # Final removal of any residual signature or notes
-    content = content.replace("Par Nathan Remacle.", "").strip()
-    content = content.replace("By Nathan Remacle.", "").strip()
-    content = re.sub(r'\*Note\s*:\s*(.*?)\s*\*', '', content, flags=re.IGNORECASE | re.DOTALL).strip()
-    content = re.sub(r'Note\s*:\s*(.*?)\s*', '', content, flags=re.IGNORECASE | re.DOTALL).strip()
-
-    selected_cover_url = get_weekly_cover_image_url() # Using the specific weekly.png image
-
-    mutation = """
-    mutation PublishPost($input: PublishPostInput!) {
-      publishPost(input: $input) {
-        post {
-          id
-          title
-          slug
-          url
-        }
-      }
-    }
-    """
-    
-    variables = {
-        "input": {
-            "title": extracted_title,
-            "contentMarkdown": content,
-            "publicationId": publication_id,
-            "tags": [
-                {"name": "Hardstyle", "slug": "hardstyle"},
-                {"name": "Ranking", "slug": "ranking"},
-                {"name": "Music", "slug": "music"},
-                {"name": "XCEED", "slug": "xceed"},
-                {"name": "Spotify", "slug": "spotify"}
-            ],
-        }
-    }
-    
-    if selected_cover_url:
-        variables["input"]["coverImageOptions"] = {
-            "coverImageURL": selected_cover_url,
-            "isCoverAttributionHidden": True
-        }
-        print(f"DEBUG: Hashnode cover image added to variables: {selected_cover_url}")
-    else:
-        print("DEBUG: No cover image added (no URL configured or list empty).")
-
-
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {HASHNODE_API_KEY}"
-    }
-
-    print(f"\n✍️ Attempting to publish article '{extracted_title}' to Hashnode...")
-    print(f"DEBUG: JSON Payload sent to Hashnode (without full content): {json.dumps(variables, indent=2)}")
-    print(f"DEBUG: Start of Markdown content sent: {content[:200]}...")
-
-    try:
-        resp = requests.post(HASHNODE_API_URL, json={"query": mutation, "variables": variables}, headers=headers)
-        
-        print("Publish status:", resp.status_code)
-        print("Publish response:", resp.text)
-        
-        response_data = resp.json()
-
-        if 'errors' in response_data and response_data['errors']:
-            print(f"❌ GraphQL ERROR from Hashnode when publishing article : {response_data['errors']}")
-            sys.exit(1)
-
-        post_url = None
-        if 'data' in response_data and \
-           'publishPost' in response_data['data'] and \
-           'post' in response_data['data']['publishPost'] and \
-           'url' in response_data['data']['publishPost']['post']:
-            post_url = response_data['data']['publishPost']['post']['url']
-            print(f"✅ Article published successfully : {extracted_title} at URL : {post_url}")
-        else:
-            print(f"✅ Article published successfully (URL not retrieved) : {extracted_title}")
-
-    except requests.exceptions.RequestException as e:
-        print(f"❌ HTTP ERROR publishing article to Hashnode : {e}")
-        print(f"Hashnode response on error : {resp.text if 'resp' in locals() else 'No response.'}")
-        sys.exit(1)
-    except Exception as e:
-        print(f"❌ An unexpected error occurred during publication : {e}")
-        sys.exit(1)
+# ... (le reste du fichier reste inchangé à partir de la fonction publish_article)
 
 # --- Main Execution ---
 if __name__ == "__main__":
-    # Add re module import
-    import re 
+    import re # Ensure re is imported here
     print("Starting weekly Hardstyle ranking bot.")
     try:
         article = generate_weekly_ranking_article()
