@@ -244,7 +244,11 @@ def publish_article(content):
             "title": extracted_title,
             "contentMarkdown": content,
             "publicationId": publication_id,
-            "tags": ["Hardstyle", "Music", "ElectronicMusic"], # Tags pertinents
+            "tags": [
+                {"name": "Hardstyle", "slug": "hardstyle"},
+                {"name": "Music", "slug": "music"},
+                {"name": "Electronic Music", "slug": "electronic-music"} # Correction pour un slug plus standard
+            ],
         }
     }
     

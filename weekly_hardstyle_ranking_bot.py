@@ -252,7 +252,13 @@ def publish_article(content):
             "title": extracted_title,
             "contentMarkdown": content,
             "publicationId": publication_id,
-            "tags": ["Hardstyle", "Ranking", "Music", "XCEED", "Spotify"], # Tags pertinents
+            "tags": [
+                {"name": "Hardstyle", "slug": "hardstyle"},
+                {"name": "Ranking", "slug": "ranking"},
+                {"name": "Music", "slug": "music"},
+                {"name": "XCEED", "slug": "xceed"},
+                {"name": "Spotify", "slug": "spotify"}
+            ],
         }
     }
     
