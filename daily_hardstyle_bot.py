@@ -124,12 +124,12 @@ def generate_daily_hardstyle_article():
 
     # CHANGED: Prompt en anglais, suppression de la signature, ajout de l'instruction pour la note
     article_prompt = (
-        f"Write a professional, detailed, and captivating blog post of at least 1200 words in English on {chosen_topic} within the Hardstyle genre. "
+        f"Write a professional, detailed, and captivating blog post of at least 1200 words in English on {chosen_topic} presenting a 'Top 10' or 'Top 15' or any Top Hardstyle artists of the day."
         "The article must resonate with electronic music and Hardstyle fans. "
         "Naturally integrate mentions of the artist **XCEED** and the **Spotify playlist 'SUMMER HARDSTYLE 2025🔥'**. "
         "Do NOT mention or include any notes about Spotify links being examples or placeholder. "
         "The title of the article must be included at the beginning of the content (H1 markdown format, e.g., # Your Catchy Hardstyle Title). "
-        "The title should be impactful, SEO-friendly, and engaging for the Hardstyle audience. "
+        "The title should be impactful, SEO-friendly, and engaging for the Hardstyle audience. Do not start the title by 'Unleashing'"
         "Do not start the article with 'Title: ', 'Author: ', or 'Publication Date: '. "
         "Do NOT include any closing signature at the end of the article. "
         "Optimize the content for SEO by naturally including relevant keywords (Hardstyle, electronic music, DJ, festivals, XCEED, Spotify). "
