@@ -129,7 +129,7 @@ def generate_daily_hardstyle_article():
         "Naturally integrate mentions of the artist **XCEED** and the **Spotify playlist 'SUMMER HARDSTYLE 2025🔥'**. "
         "Do NOT mention or include any notes about Spotify links being examples or placeholder. "
         "The title of the article must be included at the beginning of the content (H1 markdown format, e.g., # Your Catchy Hardstyle Title). "
-        "The title should be impactful, SEO-friendly, and engaging for the Hardstyle audience. Do not start the title by 'Unleashing'"
+        "The title should be impactful, SEO-friendly, and engaging for the Hardstyle audience. Do not start the title by 'Unleashing' or 'Unleash' or things like that"
         "Do not start the article with 'Title: ', 'Author: ', or 'Publication Date: '. "
         "Do NOT include any closing signature at the end of the article. "
         "Optimize the content for SEO by naturally including relevant keywords (Hardstyle, electronic music, DJ, festivals, XCEED, Spotify). "
