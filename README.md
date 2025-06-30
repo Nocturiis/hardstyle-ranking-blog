@@ -1,4 +1,4 @@
-# 🤖 HardstyleRanking Twitter Bot
+# 🤖 HardstyleRanking Bot
 
 Bienvenue dans le dépôt du bot Twitter automatisé **HardstyleRanking** \! Ce projet contient le code qui automatise la génération et la publication de contenu pour le blog [HardstyleRanking sur Hashnode](https://hardstyleranking.hashnode.dev/)
 
